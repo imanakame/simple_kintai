@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html>
+<head>
+<link rel="stylesheet" href="css/jquery.mobile-1.4.5.min.css" />
+<link rel="stylesheet" href="css/jquery-ui-1.10.4.custom.min.css" />
+<script src="js/jquery-1.10.2.js"></script>
+<script src="js/jquery.mobile-1.4.5.min.js"></script>
+<script src="js/jquery-ui-1.10.4.custom.min.js"></script>
+<meta charset="UTF-8">
+<title>勤怠管理</title>
+
+<script>
+
+//1桁の数字を0埋めで2桁にする
+var toDoubleDigits = function(num) {
+  num += "";
+  if (num.length === 1) {
+    num = "0" + num;
+  }
+ return num;     
+};
+
+var storage = localStorage;
+
+// 起動時に読み込む
+function time_set() {
+var weeks = new Array('日', '月', '火', '水', '木', '金', '土');	
+var date = new Date();
+var yyyy = date.getFullYear();
+var mm = toDoubleDigits(date.getMonth() + 1);
+var dd = toDoubleDigits(date.getDate());
+var week  = weeks[ date.getDay() ];
+var dates = yyyy + mm + dd;
+
+//n日後、n日前の日付を求める
+/**
+ * 年月日と加算日からn日後、n日前を求める関数
+ * year 年
+ * month 月
+ * day 日
+ * addDays 加算日。マイナス指定でn日前も設定可能
+ */
+function computeDate(year, month, day, addDays) {
+    var dt = new Date(year, month - 1, day);
+    var baseSec = dt.getTime();
+    var addSec = addDays * 86400000;//日数 * 1日のミリ秒数
+    var targetSec = baseSec + addSec;
+    dt.setTime(targetSec);
+    return dt;
+};
+
+// 日付をyyyymmdd形式で取得する
+function returnDate(date) {
+	var yyyy = date.getFullYear();
+	var mm = toDoubleDigits(date.getMonth() + 1);
+	var dd = toDoubleDigits(date.getDate());
+	return result_date = yyyy + mm + dd;
+}
+
+// 当日より１週間前迄の日付を取得する。
+
+// 二次元配列の作成
+var timeArray = new Array();
+
+for (i = 0; i<365; ++i) {
+	days = 366 - i;
+	timeArray[i] = new Array();
+	timeArray[i][0] = "#day" + i;
+	// n日を取得する
+	timeArray[i][1] = computeDate(yyyy, mm, dd, days);
+	// yymmdd形式で取得する
+	timeArray[i][2] = returnDate(timeArray[i][1]);
+	$(timeArray[i][0]).text(timeArray[i][1].getFullYear()  + "-" + (timeArray[i][1].getMonth() + 1) + "-" + timeArray[i][1].getDate() + "(" +weeks[ timeArray[i][1].getDay() ] + ")");
+	$("#syukin" + days).text((null == storage.getItem(timeArray[i][2]+"_syukin_date_key")) ? "" : storage.getItem(timeArray[i][2]+"_syukin_date_key"));
+	$("#taikin" + days).text((null == storage.getItem(timeArray[i][2]+"_taikin_date_key")) ? "" : storage.getItem(timeArray[i][2]+"_taikin_date_key"));
+}
+
+/*
+var date1 = computeDate(yyyy, mm, dd, -6);
+var date1s = returnDate(date1);
+document.getElementById("day1").innerHTML =date1.getFullYear()  + "-" + (date1.getMonth() + 1) + "-" + date1.getDate() + "(" +weeks[ date1.getDay() ] + ")";
+
+var date2 = computeDate(yyyy, mm, dd, -5);
+var date2s = returnDate(date2);
+document.getElementById("day2").innerHTML =date2.getFullYear()  + "-" + (date2.getMonth() + 1) + "-" + date2.getDate() + "(" +weeks[ date2.getDay() ] + ")";
+
+var date3 = computeDate(yyyy, mm, dd, -4);
+var date3s = returnDate(date3);
+$("#day3").text(date3.getFullYear()  + "-" + (date3.getMonth() + 1) + "-" + date3.getDate() + "(" +weeks[ date3.getDay() ] + ")");
+
+
+var date4 = computeDate(yyyy, mm, dd, -3);
+var date4s = returnDate(date4);
+document.getElementById("day4").innerHTML =date4.getFullYear()  + "-" + (date4.getMonth() + 1) + "-" + date4.getDate() + "(" +weeks[ date4.getDay() ] + ")";
+
+var date5 = computeDate(yyyy, mm, dd, -2);
+var date5s = returnDate(date5);
+document.getElementById("day5").innerHTML =date5.getFullYear()  + "-" + (date5.getMonth() + 1) + "-" + date5.getDate() + "(" +weeks[ date5.getDay() ] + ")";
+
+var date6 = computeDate(yyyy, mm, dd, -1);
+var date6s = returnDate(date6);
+document.getElementById("day6").innerHTML =date6.getFullYear()  + "-" + (date6.getMonth() + 1) + "-" + date6.getDate() + "(" +weeks[ date6.getDay() ] + ")";
+
+var date7 = computeDate(yyyy, mm, dd, 0);
+var date7s = returnDate(date7);
+document.getElementById("day7").innerHTML =date7.getFullYear()  + "-" + (date7.getMonth() + 1) + "-" + date7.getDate() + "(" +weeks[ date7.getDay() ] + ")";
+
+$("#syukin7").text((null == storage.getItem(date7s+"_syukin_date_key")) ? "" : storage.getItem(date7s+"_syukin_date_key"));
+$("#taikin7").text((null == storage.getItem(date7s+"_taikin_date_key")) ? "" : storage.getItem(date7s+"_taikin_date_key"));
+$("#syukin6").text((null == storage.getItem(date6s+"_syukin_date_key")) ? "" : storage.getItem(date6s+"_syukin_date_key"));
+$("#taikin6").text((null == storage.getItem(date6s+"_taikin_date_key")) ? "" : storage.getItem(date6s+"_taikin_date_key"));
+$("#syukin5").text((null == storage.getItem(date5s+"_syukin_date_key")) ? "" : storage.getItem(date5s+"_syukin_date_key"));
+$("#taikin5").text((null == storage.getItem(date5s+"_taikin_date_key")) ? "" : storage.getItem(date5s+"_taikin_date_key"));
+$("#syukin4").text((null == storage.getItem(date4s+"_syukin_date_key")) ? "" : storage.getItem(date4s+"_syukin_date_key"));
+$("#taikin4").text((null == storage.getItem(date4s+"_taikin_date_key")) ? "" : storage.getItem(date4s+"_taikin_date_key"));
+$("#syukin3").text((null == storage.getItem(date3s+"_syukin_date_key")) ? "" : storage.getItem(date3s+"_syukin_date_key"));
+$("#taikin3").text((null == storage.getItem(date3s+"_taikin_date_key")) ? "" : storage.getItem(date3s+"_taikin_date_key"));
+$("#syukin2").text((null == storage.getItem(date2s+"_syukin_date_key")) ? "" : storage.getItem(date2s+"_syukin_date_key"));
+$("#taikin2").text((null == storage.getItem(date2s+"_taikin_date_key")) ? "" : storage.getItem(date2s+"_taikin_date_key"));
+$("#syukin1").text((null == storage.getItem(date1s+"_syukin_date_key")) ? "" : storage.getItem(date1s+"_syukin_date_key"));
+$("#taikin1").text((null == storage.getItem(date1s+"_taikin_date_key")) ? "" : storage.getItem(date1s+"_taikin_date_key"));
+*/
+
+}
+
+// 出勤時間設定
+function syukin_set() {
+	
+	// 既に入力済みの場合はポップアップを表示する。
+	if ("" == $("#syukin0").text()) {
+		var dates = setDate();
+		var timeVal = setTime();
+		
+		storage.setItem(dates+"_syukin_date_key", timeVal);
+		$("#syukin0").text(timeVal);
+		$("#syukin_show_result").text(timeVal);
+	} else {
+		$("#yes_btn").data("kintai", "syukin");
+		$("#popup").popup("open");
+	}
+};
+
+// 退勤時間設定
+function taikin_set() {
+	
+	// 既に入力済みの場合はポップアップを表示する。
+	if ("" == $("#taikin0").text()) {
+		var dates = setDate();
+		var timeVal = setTime();
+	
+		storage.setItem(dates+"_taikin_date_key", timeVal);
+		$("#taikin0").text(timeVal);
+		$("#taikin_show_result").text(timeVal);
+	} else {
+		$("#yes_btn").data("kintai", "taikin");
+		$("#popup").popup("open");
+	}
+};
+
+// リアルタイムに時間を表示する。
+$(function(){
+	  setInterval( function(){
+	    $("#time").text(getDate());
+	  }, 1000);
+});
+
+// リアルタイム時間を取得する。
+function getDate() {
+	
+	var date = new Date();
+	DD = new Date();
+	Hours = toDoubleDigits(DD.getHours());
+	Minutes = toDoubleDigits(DD.getMinutes());
+	Seconds = toDoubleDigits(DD.getSeconds());
+	return Hours + ":" + Minutes + ":" + Seconds;
+}
+
+// 時間を設定する。（yyyymmdd）
+function setDate() {
+	var weeks = new Array('日', '月', '火', '水', '木', '金', '土');	
+	var date = new Date();
+	var yyyy = date.getFullYear();
+	var mm = toDoubleDigits(date.getMonth() + 1);
+	var dd = toDoubleDigits(date.getDate());
+	var week  = weeks[ date.getDay() ];
+	var dates = yyyy + mm + dd;
+	return dates;
+}
+
+// 時間の設定
+function setTime(){
+	 
+	var date = new Date();
+	var hh = toDoubleDigits(date.getHours());
+	var mi = toDoubleDigits(date.getMinutes());
+	var v = hh + ":" + mi;
+	return v;
+};
+
+function popup_yes() {
+
+	var dates = setDate();
+	var timeVal = setTime();
+
+	if("syukin" == $("#yes_btn").data("kintai")) {
+		
+		storage.setItem(dates+"_syukin_date_key", timeVal);
+		$("#syukin0").text(timeVal);
+		$("#syukin_show_result").text(timeVal);
+	} else if ("taikin" == $("#yes_btn").data("kintai")) {
+	
+		storage.setItem(dates+"_taikin_date_key", timeVal);
+		$("#taikin0").text(timeVal);
+		$("#taikin_show_result").text(timeVal);
+	}
+	
+	$("#popup").popup("close");
+};
+
+function popup_no() {
+	$("#popup").popup("close");
+};
+
+</script>
+
+<!-- スタイルシート -->
+<style type="text/css"> 
+
+#kintai{
+	display: flex;
+	width:400px;
+	float:left;
+}
+
+#syukin_show_result {
+	margin-right:10px;
+}
+#taikin_show_result {
+	margin-right:10px;
+}
+
+#time {
+	font-size:20px;
+	width:200px;
+}
+
+.clear{
+	clear:both;
+}
+
+#popup {
+	background-color:white;
+	width:300px;
+	height:200px;
+	color:black;
+}
+
+#popup-contents {
+	width:300px;
+	height:150px;
+}
+
+#popup-footer {
+	width:300px;
+	height:100px;
+	margin-left:100px;
+}
+
+</style>
+
+</head>
+<body onload="time_set()">
+
+<div id="kintai">
+	<div id="show_today"></div>
+	出勤：<div id="syukin_show_result"></div>
+	退勤：<div id="taikin_show_result"></div>
+</div>
+<div class="clear"></div>
+<div id="time"></div>
+<div class="clear"></div>
+<table>
+	<tr><td id="day6"></td><td id="syukin6"></td><td id="taikin6"></td></tr>
+	<tr><td id="day5"></td><td id="syukin5"></td><td id="taikin5"></td></tr>
+	<tr><td id="day4"></td><td id="syukin4"></td><td id="taikin4"></td></tr>
+	<tr><td id="day3"></td><td id="syukin3"></td><td id="taikin3"></td></tr>
+	<tr><td id="day2"></td><td id="syukin2"></td><td id="taikin2"></td></tr>
+	<tr><td id="day1"></td><td id="syukin1"></td><td id="taikin1"></td></tr>
+	<tr><td id="day0"></td><td id="syukin0"></td><td id="taikin0"></td></tr>
+</table>
+
+<input type="button" id="syukin_btn" value="出勤" onClick="syukin_set()" data-kintai="syukin">
+<input type="button" id="taikin_btn" value="退勤" onClick="taikin_set()" data-kintai="taikin">
+
+<div id="popup" data-role="popup" data-theme="b" data-overlay-theme="b" data-corners="true" data-shadow="false" data-dismissible="false">
+	<div id="popup-contents">
+		既に設定されています。
+	</div>
+	<div id="popup-footer">
+		<input type="button" id="yes_btn" value="はい" onClick="popup_yes()">
+		<input type="button" id="no_btn" value="いいえ" onClick="popup_no()">
+	</div>
+</div>
+
+</body>
+</html>
